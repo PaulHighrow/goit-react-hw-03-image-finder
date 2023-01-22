@@ -5,6 +5,7 @@ import { Button } from './Button/Button';
 import { Loader } from './Loader/Loader';
 import { fetchImages } from 'services/apiServices';
 import { Wrapper } from './App.styled';
+import { ErrorMessage } from './ErrorMessage/ErrorMessage';
 
 export class App extends Component {
   state = {
@@ -13,22 +14,27 @@ export class App extends Component {
     images: [],
     isLoading: false,
     totalImages: 0,
+    error: null,
   };
 
-  componentDidUpdate(_, prevState) {
+  async componentDidUpdate(_, prevState) {
     const { query, page } = this.state;
     if (prevState.query !== query || prevState.page !== page) {
-      fetchImages(query, page)
-        .then(resp => {
+      try {
+        const resp = await fetchImages(query, page);
+        if (resp) {
           this.setState(prev => ({
             images:
               page === 1 ? [...resp.hits] : [...prev.images, ...resp.hits],
             totalImages: resp.totalHits,
+            error: null,
           }));
-        })
-        .finally(() => {
-          this.setState({ isLoading: false });
-        });
+        }
+      } catch (error) {
+        this.setState({ error });
+      } finally {
+        this.setState({ isLoading: false });
+      }
     }
   }
 
@@ -41,22 +47,25 @@ export class App extends Component {
   };
 
   renderButtonOrLoader = () => {
-    return this.state.isLoading ? (
+    const { isLoading, images, totalImages } = this.state;
+    return isLoading ? (
       <Loader />
     ) : (
-      !!this.state.images.length &&
-        this.state.images.length < this.state.totalImages && (
-          <Button onLoadMore={this.handleLoadMore} />
-        )
+      !!images.length && images.length < totalImages && (
+        <Button onLoadMore={this.handleLoadMore} />
+      )
     );
   };
 
   render() {
+    const { images, error } = this.state;
+
     return (
       <>
         <Searchbar onSubmit={this.handleSubmit} />
-        <ImageGallery images={this.state.images} />
+        <ImageGallery images={images} />
         <Wrapper>{this.renderButtonOrLoader()}</Wrapper>
+        {error && <ErrorMessage error={error} />}
       </>
     );
   }
