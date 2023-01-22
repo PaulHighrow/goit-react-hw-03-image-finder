@@ -23,6 +23,9 @@ export class App extends Component {
       try {
         const resp = await fetchImages(query, page);
         if (resp) {
+          if (!resp.totalHits) {
+            throw new Error('Bad query');
+          }
           this.setState(prev => ({
             images:
               page === 1 ? [...resp.hits] : [...prev.images, ...resp.hits],
@@ -64,7 +67,7 @@ export class App extends Component {
       <>
         <Searchbar onSubmit={this.handleSubmit} />
         <ImageGallery images={images} />
-        <Wrapper>{this.renderButtonOrLoader()}</Wrapper>
+        {!error && <Wrapper>{this.renderButtonOrLoader()}</Wrapper>}
         {error && <ErrorMessage error={error} />}
       </>
     );
