@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export const Searchbar = ({ onSubmit }) => {
   const handleFormSubmit = evt => {
     evt.preventDefault();
@@ -23,6 +25,10 @@ export const Searchbar = ({ onSubmit }) => {
     </header>
   );
 };
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+}
 
 // import { Component } from 'react';
 
